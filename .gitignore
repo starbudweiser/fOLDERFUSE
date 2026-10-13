@@ -1,0 +1,28 @@
+.venv/
+__pycache__/
+*.pyc
+.build_tmp/
+build/
+dist/
+*.spec
+.DS_Store
+Icon?
+node_modules/
+# macOS
+
+# Python
+*.py[cod]
+venv/
+*.egg-info/
+.pyinstaller_cache/
+# Node / Vite
+.vite/
+# Sorties de build (régénérées par les scripts)
+.build_tmp*/
+.build-app/
+*.app/
+logs/
+# Secrets
+.env
+.env.*
+!.env.example

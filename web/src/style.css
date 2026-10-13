@@ -1,0 +1,177 @@
+@import "@socle/tokens.css";
+@import "@socle/components/bundle.css";
+
+/* Couleur de marque de fOLDERFUSE (orange pastel, hors palette Socle) — identique à l'appli Qt */
+:root {
+  --brand-bg: #f39c4a;
+  --brand-text: #1a1a1a;
+  --brand-text-muted: #3d2410;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-4);
+  box-sizing: border-box;
+  background: var(--bg-sunken);
+}
+
+/* Barre de preview */
+.devbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+}
+.devbar__check { display: inline-flex; align-items: center; gap: var(--space-1\.5); cursor: pointer; }
+.devbar__check input { accent-color: var(--accent); }
+
+/* Fenêtre */
+.window {
+  width: 540px;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+/* En-tête de marque */
+.brandbar {
+  background: var(--brand-bg);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.brandbar { position: relative; }
+.brandbar__lang {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  width: 30px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.brandbar__lang:hover { background: rgba(26, 26, 26, 0.12); }
+.brandbar__lang:focus-visible { outline: 2px solid var(--brand-text); outline-offset: 0; }
+
+/* Menu des langues (comme le QMenu de l'appli) */
+.lang-menu {
+  position: absolute;
+  top: calc(var(--space-2) + 30px);
+  right: var(--space-2);
+  z-index: 10;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-1);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  text-align: left;
+}
+.lang-menu[hidden] { display: none; }
+.lang-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-4) var(--space-1) var(--space-6);
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font: 12px/20px var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+}
+.lang-menu__item:hover, .lang-menu__item:focus-visible { background: var(--surface-hover); color: var(--text-strong); outline: none; }
+.lang-menu__item[aria-checked="true"]::before { content: "✓"; position: absolute; left: var(--space-2); color: var(--accent-text); }
+.lang-menu__sep { width: 100%; height: 1px; margin: var(--space-1) 0; border: none; background: var(--border); }
+
+.brandbar__title { margin: 0; font: 700 16px/24px var(--font-sans); letter-spacing: .025em; color: var(--brand-text); }
+.brandbar__meta { margin: 0; font: 11px/16px var(--font-sans); color: var(--brand-text-muted); }
+
+/* Sélecteurs de dossier — aplats, contenu centré */
+.pickers { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  text-align: center;
+  background: var(--surface-raised);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color .15s;
+}
+.picker:hover { background: var(--surface-hover); }
+.picker:active { background: var(--surface-selected); }
+.picker:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.picker:disabled { background: var(--surface); opacity: var(--opacity-disabled); cursor: not-allowed; }
+.picker__title { font: 700 16px/20px var(--font-sans); letter-spacing: .025em; color: var(--text-strong); }
+.picker__path { max-width: 100%; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.picker.is-filled .picker__path { color: var(--accent-text); font: 12px/16px var(--font-mono); }
+.picker__detail { font: 11px/16px var(--font-sans); color: var(--text-subtle); }
+
+.fuse { width: 100%; border: none; }
+.fuse.is-running { background: var(--control-strong); color: var(--text-strong); }
+.fuse.is-running:hover { background: var(--control-hover); }
+
+/* Progression — aplats, aucun contour */
+.progress {
+  position: relative;
+  height: var(--size-control-lg);
+  background: var(--control);
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+}
+.progress__chunk { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent-fill); transition: width .15s linear; }
+.progress__label { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-strong); white-space: pre; }
+.progress.is-success, .progress.is-success .progress__chunk { background: var(--success-bg); }
+.progress.is-success .progress__label { color: var(--success-soft); }
+.progress.is-warning, .progress.is-warning .progress__chunk { background: var(--warning-bg); }
+.progress.is-warning .progress__label { color: var(--warning-soft); }
+.progress.is-stalled { background: var(--warning-bg); }
+.progress.is-stalled .progress__label { color: var(--warning-soft); }
+.progress.is-danger, .progress.is-danger .progress__chunk { background: var(--danger-bg); }
+.progress.is-danger .progress__label { color: var(--danger-soft); }
+
+/* Dialogue */
+.modal { position: fixed; inset: 0; }
+.modal[hidden] { display: none; }
+.sc-dialog__body { white-space: pre-line; overflow-wrap: anywhere; }
+.modal__details summary { cursor: pointer; color: var(--accent-text); }
+.modal__details[hidden] { display: none; }
+.modal__details .sc-log { margin: var(--space-2) 0 0; white-space: pre-wrap; max-height: 160px; overflow: auto; }
+
+@media (max-width: 480px) {
+  .pickers { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}

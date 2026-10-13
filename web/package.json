@@ -1,0 +1,15 @@
+{
+  "name": "folderfuse-preview",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "predev": "python3 export_i18n.py",
+    "prebuild": "python3 export_i18n.py"
+  },
+  "devDependencies": {
+    "vite": "^7.3.7"
+  }
+}

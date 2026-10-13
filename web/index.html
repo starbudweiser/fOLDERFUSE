@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/icon.png" />
+    <title>fOLDERFUSE</title>
+  </head>
+  <body>
+    <!-- Barre de preview (hors application) -->
+    <div class="devbar">
+      <span class="sc-eyebrow">Preview</span>
+      <button class="sc-btn sc-btn--secondary" id="toggle-theme" type="button">Thème clair</button>
+      <label class="devbar__check"><input type="checkbox" id="sim-error" /> Problèmes de copie</label>
+      <label class="devbar__check"><input type="checkbox" id="sim-stall" /> Blocage</label>
+      <label class="devbar__check"><input type="checkbox" id="sim-space" /> Espace insuffisant</label>
+      <button class="sc-btn sc-btn--secondary" id="reset" type="button">Réinitialiser</button>
+    </div>
+
+    <!-- Fenêtre de l'application, 540px comme dans Qt -->
+    <main class="window" aria-label="fOLDERFUSE">
+      <header class="brandbar">
+        <h1 class="brandbar__title">fOLDERFUSE</h1>
+        <p class="brandbar__meta">Les fichiers de même nom sont remplacés dans la destination.</p>
+        <button class="brandbar__lang" id="lang" type="button" aria-haspopup="menu" aria-expanded="false">🇫🇷</button>
+        <div class="lang-menu" id="lang-menu" role="menu" hidden></div>
+      </header>
+
+      <div class="pickers">
+        <button class="picker" id="pick-src" type="button">
+          <span class="picker__title">SOURCE</span>
+          <span class="picker__path">Choisir un dossier</span>
+          <span class="picker__detail">&nbsp;</span>
+        </button>
+        <button class="picker" id="pick-dest" type="button">
+          <span class="picker__title">DESTINATION</span>
+          <span class="picker__path">Choisir un dossier</span>
+          <span class="picker__detail">&nbsp;</span>
+        </button>
+      </div>
+
+      <button class="sc-btn sc-btn--primary fuse" id="fuse" type="button">FUSIONNER</button>
+
+      <div class="progress" id="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="progress__chunk"></div>
+        <span class="progress__label">En attente de sélection...</span>
+      </div>
+    </main>
+
+    <!-- Dialogue (remplace les QMessageBox) -->
+    <div class="sc-scrim modal" id="modal" hidden>
+      <div class="sc-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <h2 class="sc-dialog__title" id="modal-title"></h2>
+        <p class="sc-dialog__body" id="modal-body"></p>
+        <details class="modal__details" id="modal-details" hidden>
+          <summary>Montrer les détails</summary>
+          <pre class="sc-log" id="modal-details-text"></pre>
+        </details>
+        <div class="sc-dialog__actions" id="modal-actions"></div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
