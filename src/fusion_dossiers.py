@@ -2,7 +2,7 @@ import sys, os, time, threading, json
 from pathlib import Path
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QMenu,
-    QFileDialog, QHBoxLayout, QProgressBar, QMessageBox, QFrame, QSizePolicy
+    QFileDialog, QGridLayout, QHBoxLayout, QProgressBar, QMessageBox, QFrame, QSizePolicy
 )
 from PyQt6.QtGui import QActionGroup
 from PyQt6.QtCore import Qt, QThread, QTimer, QTranslator, QLibraryInfo, QLocale, pyqtSignal
@@ -17,6 +17,11 @@ BRAND_BG = "#f39c4a"
 BRAND_TEXT = "#1a1a1a"
 BRAND_TEXT_MUTED = "#3d2410"
 BRAND_HOVER = "rgba(26, 26, 26, 0.12)"
+
+# Taille des textes (zoom Socle, socle_qt.Zoom) : 1,25 par défaut, le corps passe de 12 à 15 px.
+# La largeur de la fenêtre (540 px à 100 %) suit le zoom.
+ZOOM_DEFAULT = 1.25
+BASE_WIDTH = 540
 
 # Points animés après le pourcentage : montrent que la fusion tourne même si le % stagne
 ACTIVITY_FRAMES = ("● ○ ○", "○ ● ○", "○ ○ ●", "○ ● ○")
@@ -219,7 +224,7 @@ QPushButton[variant="stop"]:disabled {{ color: {c('text-disabled')}; }}
 /* Barre de progression : aplats, aucun contour */
 QProgressBar {{
     background-color: {c('control')}; color: {c('text-strong')}; border: none;
-    border-radius: {m('radius')}px; min-height: {m('size-control-lg')}px; max-height: {m('size-control-lg')}px;
+    border-radius: {m('radius')}px; min-height: {m('size-control-lg')}px;
     text-align: center;
 }}
 QProgressBar::chunk {{ background-color: {c('accent-fill')}; border: none; border-radius: {m('radius')}px; }}
@@ -296,7 +301,6 @@ class FusionApp(QWidget):
         btn.setObjectName("LangButton")
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
         btn.setFocusPolicy(Qt.FocusPolicy.TabFocus)
-        btn.setFixedSize(30, 26)
         btn.clicked.connect(self._open_language_menu)
         return btn
 
@@ -309,30 +313,37 @@ class FusionApp(QWidget):
         header = QFrame()
         header.setObjectName("BrandBar")
         header.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        header.setStyleSheet(f"""
-            QFrame#BrandBar {{ background-color: {BRAND_BG}; border: none; border-radius: {socle_qt.m("radius-md")}px; }}
-            QFrame#BrandBar QLabel {{ background: transparent; color: {BRAND_TEXT}; }}
-            QFrame#BrandBar QLabel[role="meta"] {{ color: {BRAND_TEXT_MUTED}; }}
-            QPushButton#LangButton {{ background: transparent; border: none; border-radius: {socle_qt.m("radius")}px;
-                                      padding: 0; min-height: 0; font-size: 18px; }}
-            QPushButton#LangButton:hover {{ background: {BRAND_HOVER}; }}
-            QPushButton#LangButton:focus {{ border: 2px solid {BRAND_TEXT}; }}
-        """)
-        head = QHBoxLayout(header)
+        self.header = header
+        # Ligne 1 : [espace | titre centré | zoom + drapeau] ; ligne 2 : accroche sur toute la largeur
+        head = QGridLayout(header)
         head.setContentsMargins(socle_qt.m("space-2"), socle_qt.m("space-2"), socle_qt.m("space-2"), socle_qt.m("space-2"))
-        head.setSpacing(0)
-        titles = QVBoxLayout()
-        titles.setSpacing(2)
+        head.setHorizontalSpacing(0)
+        head.setVerticalSpacing(2)
         self.lbl_title = socle_qt.role(QLabel("fOLDERFUSE"), "heading")
         self.lbl_tagline = socle_qt.role(QLabel(), "meta")
         for lbl in (self.lbl_title, self.lbl_tagline):
             lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            titles.addWidget(lbl)
         self.btn_lang = self._make_language_button()
-        # Espace symétrique à gauche pour que les titres restent centrés
-        head.addSpacing(self.btn_lang.width())
-        head.addLayout(titles, 1)
-        head.addWidget(self.btn_lang, 0, Qt.AlignmentFlag.AlignTop)
+        # ⌥/⌘ + − 0 et boutons A− A+ (Socle), à gauche du drapeau
+        self.zoom = socle_qt.Zoom(self, default=ZOOM_DEFAULT)
+        self.zoom.changed.connect(self._zoom_changed)
+        self.zoom_box = self.zoom.controls()
+        self.head_right = QWidget()
+        right = QHBoxLayout(self.head_right)
+        right.setContentsMargins(0, 0, 0, 0)
+        right.setSpacing(socle_qt.m("space-1"))
+        right.addWidget(self.zoom_box)
+        right.addWidget(self.btn_lang)
+        # Espace symétrique à gauche pour que le titre reste centré (largeur fixée par _fit_height)
+        self.head_left = QWidget()
+        for w in (self.head_left, self.head_right):
+            w.setStyleSheet("background: transparent;")
+        head.addWidget(self.head_left, 0, 0)
+        head.addWidget(self.lbl_title, 0, 1)
+        head.addWidget(self.head_right, 0, 2)
+        head.addWidget(self.lbl_tagline, 1, 0, 1, 3)
+        head.setColumnStretch(1, 1)
+        self._style_header()
         layout.addWidget(header)
 
         # Sélection dossiers : source à gauche, destination à droite
@@ -360,8 +371,30 @@ class FusionApp(QWidget):
         layout.addWidget(self.progress)
 
         self.setLayout(layout)
-        self.setFixedWidth(540)
         self._fitted = False
+
+    def _style_header(self):
+        """Couleurs de marque de l'en-tête et drapeau de langue, à la taille du zoom en cours."""
+        flag = round(18 * socle_qt.scale())
+        self.btn_lang.setFixedSize(flag + 12, flag + 8)
+        self.header.setStyleSheet(f"""
+            QFrame#BrandBar {{ background-color: {BRAND_BG}; border: none; border-radius: {socle_qt.m("radius-md")}px; }}
+            QFrame#BrandBar QLabel {{ background: transparent; color: {BRAND_TEXT}; }}
+            QFrame#BrandBar QLabel[role="meta"] {{ color: {BRAND_TEXT_MUTED}; }}
+            QFrame#BrandBar QPushButton[variant="tertiary"] {{ background: transparent; border: none; color: {BRAND_TEXT}; }}
+            QFrame#BrandBar QPushButton[variant="tertiary"]:hover {{ background: {BRAND_HOVER}; }}
+            QPushButton#LangButton {{ background: transparent; border: none; border-radius: {socle_qt.m("radius")}px;
+                                      padding: 0; min-height: 0; font-size: {flag}px; }}
+            QPushButton#LangButton:hover {{ background: {BRAND_HOVER}; }}
+            QPushButton#LangButton:focus {{ border: 2px solid {BRAND_TEXT}; }}
+        """)
+
+    def _zoom_changed(self, value: float):
+        self.config["zoom"] = value
+        save_config(self.config)
+        flat_style(QApplication.instance())   # set_scale() a régénéré la feuille Socle seule
+        self._style_header()
+        self._fit_height()
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -375,6 +408,9 @@ class FusionApp(QWidget):
         for btn in (self.btn_src, self.btn_dest):
             for lbl in btn.findChildren(QLabel):
                 lbl.ensurePolished()
+        self.setFixedWidth(round(BASE_WIDTH * max(1.0, socle_qt.scale())))
+        self.head_right.adjustSize()
+        self.head_left.setFixedWidth(self.head_right.sizeHint().width())
         picker_height = max(b.layout().sizeHint().height() for b in (self.btn_src, self.btn_dest))
         for btn in (self.btn_src, self.btn_dest):
             # Par feuille de style : la min-height de Socle l'emporterait sur setMinimumHeight()
@@ -419,6 +455,10 @@ class FusionApp(QWidget):
         code = i18n.get_lang()
         self.btn_lang.setText(i18n.FLAGS[code])
         self.btn_lang.setToolTip(L("Langue : {name}", name=i18n.LANGS[code]))
+        smaller, bigger = self.zoom_box.findChildren(QPushButton)
+        smaller.setToolTip(L("Réduire les textes (⌥− ou ⌘−)"))
+        bigger.setToolTip(L("Agrandir les textes (⌥+ ou ⌘+)"))
+        self.zoom_box.findChild(QLabel).setToolTip(L("Taille des textes (⌥0 ou ⌘0 : taille par défaut)"))
         self.lbl_tagline.setText(L("Les fichiers de même nom sont remplacés dans la destination."))
         self.lbl_src_title.setText(L("SOURCE"))
         self.lbl_dest_title.setText(L("DESTINATION"))
@@ -800,6 +840,7 @@ if __name__ == "__main__":
     config = load_config()
     init_language(app, config)
     socle_qt.apply(app)
+    socle_qt.set_scale(app, float(config.get("zoom", ZOOM_DEFAULT)))
     flat_style(app)
     window = FusionApp(config)
     window.show()
