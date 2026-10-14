@@ -10,13 +10,12 @@ Utilisation :
     socle_qt.variant(bouton, "primary")          # primary | action | secondary | tertiary
     socle_qt.role(label, "title")                # title | heading | display | eyebrow | meta | mono | path | muted | subtle
     socle_qt.status(label, "success")            # success | warning | danger | none (+ repolish auto)
-    zoom = socle_qt.Zoom(fenetre, scale=1.25)    # taille des textes : ⌥/⌘ + − 0, boutons A− A+ via zoom.controls()
 """
 import os
 import tempfile
 
-from PyQt6.QtGui import QColor, QFont, QFontDatabase, QKeySequence, QPalette, QShortcut
-from PyQt6.QtCore import QEvent, QObject, Qt, pyqtSignal
+from PyQt6.QtGui import QColor, QFont, QFontDatabase, QPalette
+from PyQt6.QtCore import QEvent, QObject, Qt
 from PyQt6.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QLabel, QPushButton, QRadioButton, QSizePolicy,
                              QWidget)
 
@@ -162,8 +161,17 @@ TOKENS = {'version': 1,
 
 _theme = "dark"
 _full = True
-_scale = 1.0
-_BASE_SIZES = {name: spec["size"] for name, spec in TOKENS["type"].items()}
+# Échelle fixe des applis Qt : les tailles typographiques des tokens × 1,1 (body 12 → 13 px…), réglée
+# après essais sur l'écran de l'utilisateur. Pas de zoom à la volée : espacements, rayons et hauteurs ne
+# changent pas, l'agencement reste celui qui a été vérifié.
+SCALE = 1.1
+for _spec in TOKENS["type"].values():
+    _spec["size"] = max(8, round(_spec["size"] * SCALE))
+
+
+def scale() -> float:
+    """Échelle typographique des applis (fixe) : pour mettre à l'échelle une taille propre à l'appli."""
+    return SCALE
 
 
 def c(name: str, theme: str | None = None) -> str:
@@ -520,95 +528,3 @@ def apply(app: QApplication, theme: str = "dark", full: bool = True) -> None:
     app.setPalette(palette(theme))
     app.setStyleSheet(qss(theme, full))
 
-
-# ------------------------------------------------------------------ taille des textes (zoom)
-
-SCALE_STEPS = (0.9, 1.0, 1.1, 1.25, 1.4, 1.6, 1.8, 2.0)
-
-
-def scale() -> float:
-    """Échelle typographique en cours (1.0 = tailles Socle)."""
-    return _scale
-
-
-def set_scale(app: QApplication, value: float) -> None:
-    """Met toutes les tailles typographiques à l'échelle (body 12px × value…) et réapplique
-    police, palette et feuille QSS avec le thème et le mode (full) du dernier apply().
-    Les espacements, rayons et hauteurs ne changent pas : éviter les hauteurs fixes sur ce qui porte du texte."""
-    global _scale
-    _scale = float(value)
-    for name, size in _BASE_SIZES.items():
-        TOKENS["type"][name]["size"] = max(8, round(size * _scale))
-    apply(app, _theme, _full)
-
-
-def next_scale(current: float, step: int, default: float = 1.0, steps: tuple = SCALE_STEPS) -> float:
-    """Cran suivant : step +1 / -1, 0 = valeur par défaut."""
-    if step == 0:
-        return default
-    i = min(range(len(steps)), key=lambda j: abs(steps[j] - current))
-    return steps[max(0, min(len(steps) - 1, i + step))]
-
-
-class Zoom(QObject):
-    """Zoom des textes d'une appli : raccourcis ⌥+ ⌥− ⌥0 et ⌘+ ⌘− ⌘0 (« = » vaut « + ») sur la fenêtre,
-    boutons A− / A+ avec le pourcentage via controls(). Le signal changed(float) sert à mémoriser
-    la valeur (config de l'appli) et à suivre ailleurs (QWebEngineView.setZoomFactor…).
-
-        zoom = socle_qt.Zoom(fenetre, scale=cfg.get("zoom", 1.25), default=1.25)
-        entete.addWidget(zoom.controls())
-        zoom.changed.connect(lambda v: enregistrer("zoom", v))
-    """
-
-    changed = pyqtSignal(float)
-
-    def __init__(self, window: QWidget, scale: float | None = None, default: float = 1.0,
-                 steps: tuple = SCALE_STEPS):
-        super().__init__(window)
-        self.default, self.steps = float(default), tuple(steps)
-        self._labels: list[QLabel] = []
-        if scale is not None and float(scale) != _scale:
-            set_scale(QApplication.instance(), float(scale))
-        for mod in ("Alt", "Ctrl"):  # Qt traduit Ctrl en ⌘ sur macOS
-            for key, step in (("+", 1), ("=", 1), ("-", -1), ("0", 0)):
-                QShortcut(QKeySequence(f"{mod}+{key}"), window, activated=lambda st=step: self.step(st))
-
-    @property
-    def value(self) -> float:
-        return _scale
-
-    def step(self, step: int) -> None:
-        """+1 / -1 d'un cran, 0 = valeur par défaut."""
-        self.set(next_scale(_scale, step, self.default, self.steps))
-
-    def set(self, value: float) -> None:
-        if float(value) == _scale:
-            return
-        set_scale(QApplication.instance(), value)
-        self._refresh()
-        self.changed.emit(_scale)
-
-    def _refresh(self) -> None:
-        for label in self._labels:
-            label.setText(f"{round(_scale * 100)} %")
-
-    def controls(self, smaller: str = "Réduire les textes (⌥− ou ⌘−)", bigger: str = "Agrandir les textes (⌥+ ou ⌘+)",
-                 reset: str = "Taille des textes (⌥0 ou ⌘0 : taille par défaut)") -> QWidget:
-        """Boutons A− et A+ (tertiary) encadrant le pourcentage en cours ; infobulles à traduire par l'appli."""
-        box = QWidget()
-        box.setStyleSheet("background: transparent;")
-        lay = QHBoxLayout(box)
-        lay.setContentsMargins(0, 0, 0, 0)
-        lay.setSpacing(int(m("space-1")))
-        label = role(QLabel(), "meta")
-        label.setToolTip(reset)
-        self._labels.append(label)
-        for text, tip, st in (("A−", smaller, -1), ("A+", bigger, 1)):
-            b = variant(QPushButton(text), "tertiary")
-            b.setToolTip(tip)
-            b.clicked.connect(lambda _=False, s=st: self.step(s))
-            lay.addWidget(b)
-            if st < 0:
-                lay.addWidget(label)
-        self._refresh()
-        return box

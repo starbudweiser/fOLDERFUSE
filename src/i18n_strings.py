@@ -26,13 +26,6 @@ TR = {
     "ARRÊTER": ("STOP", "FERMA", "DETENER"),
     "Langue : {name}": ("Language: {name}", "Lingua: {name}", "Idioma: {name}"),
     "Automatique ({lang})": ("Automatic ({lang})", "Automatica ({lang})", "Automático ({lang})"),
-    "Réduire les textes (⌥− ou ⌘−)": ("Smaller text (⌥− or ⌘−)", "Testo più piccolo (⌥− o ⌘−)",
-                                      "Texto más pequeño (⌥− o ⌘−)"),
-    "Agrandir les textes (⌥+ ou ⌘+)": ("Larger text (⌥+ or ⌘+)", "Testo più grande (⌥+ o ⌘+)",
-                                       "Texto más grande (⌥+ o ⌘+)"),
-    "Taille des textes (⌥0 ou ⌘0 : taille par défaut)": (
-        "Text size (⌥0 or ⌘0: default size)", "Dimensione del testo (⌥0 o ⌘0: dimensione predefinita)",
-        "Tamaño del texto (⌥0 o ⌘0: tamaño predeterminado)"),
 
     # ------------------------------------------------------------ barre de progression
     "En attente de sélection...": ("Waiting for selection...", "In attesa di selezione...",
