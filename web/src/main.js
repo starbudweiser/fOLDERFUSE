@@ -1,4 +1,4 @@
-// Réplique web de src/fusion_dossiers.py : mêmes textes (mêmes clés de traduction), mêmes états,
+// Réplique web de l'appli (macos/Sources/fOLDERFUSE) : mêmes textes (mêmes clés de traduction), mêmes états,
 // fusion simulée.
 import "./style.css";
 import { L, P, fmtInt, fmtSize, LANGS, getLang, setLang, systemLang } from "./i18n.js";
@@ -176,19 +176,14 @@ function applyTexts() {
 
 // --- Dialogues ---
 
-// Libellé fourni par Qt dans l'appli (traductions qtbase), absent de la table de l'appli
-const QT_DETAILS = { fr: "Montrer les détails…", en: "Show Details…", it: "Mostra dettagli…", es: "Mostrar detalles…" };
-
 // Renvoie une promesse résolue avec l'index du bouton cliqué.
-// Le bouton `defaultIndex` reçoit le focus et répond à Échap, comme dans l'appli Qt.
+// Le bouton `defaultIndex` reçoit le focus et répond à Échap ; la liste des problèmes s'affiche dessous, comme dans l'appli.
 function dialog({ title, body, buttons, defaultIndex = 0, details = "", danger = false }) {
   const modal = $("#modal");
   $("#modal-title").textContent = title;
   $("#modal-body").textContent = body;
   const det = $("#modal-details");
   det.hidden = !details;
-  det.open = false;
-  det.querySelector("summary").textContent = QT_DETAILS[getLang()];
   $("#modal-details-text").textContent = details;
   modal.querySelector(".sc-dialog").classList.toggle("sc-dialog--danger", danger);
   const actions = $("#modal-actions");

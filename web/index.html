@@ -18,7 +18,7 @@
       <button class="sc-btn sc-btn--secondary" id="reset" type="button">Réinitialiser</button>
     </div>
 
-    <!-- Fenêtre de l'application, 540px comme dans Qt -->
+    <!-- Fenêtre de l'application, 540px comme dans l'appli -->
     <main class="window" aria-label="fOLDERFUSE">
       <header class="brandbar">
         <h1 class="brandbar__title">fOLDERFUSE</h1>
@@ -46,15 +46,14 @@
       </div>
     </main>
 
-    <!-- Dialogue (remplace les QMessageBox) -->
+    <!-- Dialogue (remplace les alertes de l'appli) -->
     <div class="sc-scrim modal" id="modal" hidden>
       <div class="sc-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <h2 class="sc-dialog__title" id="modal-title"></h2>
         <p class="sc-dialog__body" id="modal-body"></p>
-        <details class="modal__details" id="modal-details" hidden>
-          <summary>Montrer les détails</summary>
+        <div class="modal__details" id="modal-details" hidden>
           <pre class="sc-log" id="modal-details-text"></pre>
-        </details>
+        </div>
         <div class="sc-dialog__actions" id="modal-actions"></div>
       </div>
     </div>

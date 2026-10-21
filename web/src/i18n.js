@@ -1,4 +1,4 @@
-// Équivalent web de src/i18n.py : le texte français sert de clé.
+// Équivalent web de macos/Sources/FusionCore/I18n.swift : le texte français sert de clé.
 // La table est celle de l'appli : i18n/strings.json, {texte_fr: [en, it, es]}.
 import TR from "../../i18n/strings.json";
 

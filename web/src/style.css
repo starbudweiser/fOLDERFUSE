@@ -1,7 +1,7 @@
 @import "@socle/tokens.css";
 @import "@socle/components/bundle.css";
 
-/* Couleur de marque de fOLDERFUSE (orange pastel, hors palette Socle) — identique à l'appli Qt */
+/* Couleur de marque de fOLDERFUSE (orange pastel, hors palette Socle) — identique à l'appli */
 :root {
   --brand-bg: #f39c4a;
   --brand-text: #1a1a1a;
@@ -113,7 +113,6 @@ body {
 .modal { position: fixed; inset: 0; }
 .modal[hidden] { display: none; }
 .sc-dialog__body { white-space: pre-line; overflow-wrap: anywhere; }
-.modal__details summary { cursor: pointer; color: var(--accent-text); }
 .modal__details[hidden] { display: none; }
 .modal__details .sc-log { margin: var(--space-2) 0 0; white-space: pre-wrap; max-height: 160px; overflow: auto; }
 

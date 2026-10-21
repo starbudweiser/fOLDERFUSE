@@ -97,5 +97,4 @@ let translations: [String: [String]] = [
     "Quitter fOLDERFUSE": ["Quit fOLDERFUSE", "Esci da fOLDERFUSE", "Salir de fOLDERFUSE"],
     "Fenêtre": ["Window", "Finestra", "Ventana"],
     "Réduire": ["Minimize", "Riduci a icona", "Minimizar"],
-    "Détails :": ["Details:", "Dettagli:", "Detalles:"],
 ]
