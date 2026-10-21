@@ -55,5 +55,13 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-"$ROOT/../_tools/sign_app.sh" "$APP"
+# Signature stable avec _tools/sign_app.sh (certificat local) ; sans lui (compilation depuis
+# le dépôt GitHub seul), signature ad hoc pour que l'appli se lance quand même.
+SIGN_APP="$ROOT/../_tools/sign_app.sh"
+if [ -x "$SIGN_APP" ]; then
+    "$SIGN_APP" "$APP"
+else
+    echo "_tools/sign_app.sh absent : signature ad hoc."
+    codesign --force --deep --sign - "$APP"
+fi
 echo "✓ Application créée : $APP"
