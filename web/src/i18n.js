@@ -3,7 +3,6 @@
 import TR from "./i18n.json";
 
 export const LANGS = { fr: "Français", en: "English", it: "Italiano", es: "Español" };
-export const FLAGS = { fr: "🇫🇷", en: "🇬🇧", it: "🇮🇹", es: "🇪🇸" };
 const INDEX = { en: 0, it: 1, es: 2 };
 const THOUSANDS = { fr: " ", en: ",", it: ".", es: "." };
 const DECIMAL = { fr: ",", en: ".", it: ",", es: "," };

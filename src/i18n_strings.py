@@ -24,8 +24,6 @@ TR = {
     "{n} octets": ("{n} bytes", "{n} byte", "{n} bytes"),
     "FUSIONNER": ("MERGE", "UNISCI", "FUSIONAR"),
     "ARRÊTER": ("STOP", "FERMA", "DETENER"),
-    "Langue : {name}": ("Language: {name}", "Lingua: {name}", "Idioma: {name}"),
-    "Automatique ({lang})": ("Automatic ({lang})", "Automatica ({lang})", "Automático ({lang})"),
 
     # ------------------------------------------------------------ barre de progression
     "En attente de sélection...": ("Waiting for selection...", "In attesa di selezione...",

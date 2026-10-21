@@ -1,10 +1,8 @@
-import sys, os, time, threading, json
-from pathlib import Path
+import sys, os, time, threading
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QMenu,
-    QFileDialog, QGridLayout, QHBoxLayout, QProgressBar, QMessageBox, QFrame, QSizePolicy
+    QApplication, QWidget, QVBoxLayout, QPushButton, QLabel,
+    QFileDialog, QHBoxLayout, QProgressBar, QMessageBox, QFrame, QSizePolicy
 )
-from PyQt6.QtGui import QActionGroup
 from PyQt6.QtCore import Qt, QThread, QTimer, QTranslator, QLibraryInfo, QLocale, pyqtSignal
 
 import socle_qt
@@ -31,27 +29,6 @@ STALL_SECONDS = 30
 
 # Symbole devant chaque statut : la couleur ne porte jamais seule l'information (Socle)
 STATUS_SYMBOLS = {"success": "✓", "warning": "!", "danger": "✕"}
-
-# Réglages (langue choisie) : même emplacement que les autres applis
-CONFIG_FILE = Path.home() / "Library" / "Application Support" / "fOLDERFUSE" / "config.json"
-AUTO = "auto"  # langue du système
-
-
-def load_config() -> dict:
-    try:
-        data = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
-        return data if isinstance(data, dict) else {}
-    except (OSError, ValueError):
-        return {}  # config absente ou corrompue -> valeurs par défaut
-
-
-def save_config(data: dict) -> None:
-    try:
-        CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
-        CONFIG_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
-    except OSError as e:
-        print(f"Config save failed: {e}", file=sys.stderr)
-
 
 def detect_system_lang() -> str:
     """Langue de l'interface du Mac (Réglages > Général > Langue et région)."""
@@ -238,10 +215,9 @@ QProgressBar[status="danger"]::chunk {{ background-color: {c('danger-bg')}; }}
 
 
 class FusionApp(QWidget):
-    def __init__(self, config: dict | None = None):
+    def __init__(self):
         super().__init__()
 
-        self.config = config if config is not None else {}
         self.source = ""
         self.destination = ""
         self.analysis = None
@@ -293,15 +269,6 @@ class FusionApp(QWidget):
             box.addWidget(lbl)
         return btn, heading, path, detail
 
-    def _make_language_button(self) -> QPushButton:
-        """Drapeau de la langue active, en haut à droite de l'en-tête ; ouvre le choix de la langue."""
-        btn = QPushButton()
-        btn.setObjectName("LangButton")
-        btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn.setFocusPolicy(Qt.FocusPolicy.TabFocus)
-        btn.clicked.connect(self._open_language_menu)
-        return btn
-
     def build_ui(self):
         layout = QVBoxLayout()
         layout.setSpacing(socle_qt.m("space-3"))
@@ -312,30 +279,15 @@ class FusionApp(QWidget):
         header.setObjectName("BrandBar")
         header.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         self.header = header
-        # Ligne 1 : [espace | titre centré | drapeau] ; ligne 2 : accroche sur toute la largeur
-        head = QGridLayout(header)
+        head = QVBoxLayout(header)
         head.setContentsMargins(socle_qt.m("space-2"), socle_qt.m("space-2"), socle_qt.m("space-2"), socle_qt.m("space-2"))
-        head.setHorizontalSpacing(0)
-        head.setVerticalSpacing(2)
+        head.setSpacing(2)
         self.lbl_title = socle_qt.role(QLabel("fOLDERFUSE"), "heading")
         self.lbl_tagline = socle_qt.role(QLabel(), "meta")
         for lbl in (self.lbl_title, self.lbl_tagline):
             lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.btn_lang = self._make_language_button()
-        self.head_right = QWidget()
-        right = QHBoxLayout(self.head_right)
-        right.setContentsMargins(0, 0, 0, 0)
-        right.setSpacing(socle_qt.m("space-1"))
-        right.addWidget(self.btn_lang)
-        # Espace symétrique à gauche pour que le titre reste centré (largeur fixée par _fit_height)
-        self.head_left = QWidget()
-        for w in (self.head_left, self.head_right):
-            w.setStyleSheet("background: transparent;")
-        head.addWidget(self.head_left, 0, 0)
-        head.addWidget(self.lbl_title, 0, 1)
-        head.addWidget(self.head_right, 0, 2)
-        head.addWidget(self.lbl_tagline, 1, 0, 1, 3)
-        head.setColumnStretch(1, 1)
+        head.addWidget(self.lbl_title)
+        head.addWidget(self.lbl_tagline)
         self._style_header()
         layout.addWidget(header)
 
@@ -367,19 +319,13 @@ class FusionApp(QWidget):
         self._fitted = False
 
     def _style_header(self):
-        """Couleurs de marque de l'en-tête et drapeau de langue, à l'échelle des textes Socle."""
-        flag = round(18 * socle_qt.scale())
-        self.btn_lang.setFixedSize(flag + 12, flag + 8)
+        """Couleurs de marque de l'en-tête."""
         self.header.setStyleSheet(f"""
             QFrame#BrandBar {{ background-color: {BRAND_BG}; border: none; border-radius: {socle_qt.m("radius-md")}px; }}
             QFrame#BrandBar QLabel {{ background: transparent; color: {BRAND_TEXT}; }}
             QFrame#BrandBar QLabel[role="meta"] {{ color: {BRAND_TEXT_MUTED}; }}
             QFrame#BrandBar QPushButton[variant="tertiary"] {{ background: transparent; border: none; color: {BRAND_TEXT}; }}
             QFrame#BrandBar QPushButton[variant="tertiary"]:hover {{ background: {BRAND_HOVER}; }}
-            QPushButton#LangButton {{ background: transparent; border: none; border-radius: {socle_qt.m("radius")}px;
-                                      padding: 0; min-height: 0; font-size: {flag}px; }}
-            QPushButton#LangButton:hover {{ background: {BRAND_HOVER}; }}
-            QPushButton#LangButton:focus {{ border: 2px solid {BRAND_TEXT}; }}
         """)
 
     def showEvent(self, event):
@@ -395,8 +341,6 @@ class FusionApp(QWidget):
             for lbl in btn.findChildren(QLabel):
                 lbl.ensurePolished()
         self.setFixedWidth(round(BASE_WIDTH * max(1.0, socle_qt.scale())))
-        self.head_right.adjustSize()
-        self.head_left.setFixedWidth(self.head_right.sizeHint().width())
         picker_height = max(b.layout().sizeHint().height() for b in (self.btn_src, self.btn_dest))
         for btn in (self.btn_src, self.btn_dest):
             # Par feuille de style : la min-height de Socle l'emporterait sur setMinimumHeight()
@@ -404,43 +348,8 @@ class FusionApp(QWidget):
         self.layout().activate()
         self.setFixedHeight(self.sizeHint().height())
 
-    # --- Langue ---
-
-    def _open_language_menu(self):
-        menu = QMenu(self)
-        group = QActionGroup(menu)
-        chosen = self.config.get("language", AUTO)
-        system = detect_system_lang()
-        auto = menu.addAction(L("Automatique ({lang})", lang=f"{i18n.FLAGS[system]} {i18n.LANGS[system]}"))
-        auto.setData(AUTO)
-        menu.addSeparator()
-        actions = [auto]
-        for code, name in i18n.LANGS.items():
-            act = menu.addAction(f"{i18n.FLAGS[code]}  {name}")
-            act.setData(code)
-            actions.append(act)
-        for act in actions:
-            act.setCheckable(True)
-            act.setChecked(act.data() == chosen)
-            group.addAction(act)
-        picked = menu.exec(self.btn_lang.mapToGlobal(self.btn_lang.rect().bottomLeft()))
-        if picked is not None:
-            self.set_language(picked.data())
-
-    def set_language(self, choice: str):
-        """Change la langue (code ou AUTO), la mémorise et retraduit l'interface."""
-        self.config["language"] = choice
-        save_config(self.config)
-        code = detect_system_lang() if choice == AUTO else choice
-        i18n.set_lang(code)
-        install_qt_translation(QApplication.instance(), code)
-        self.apply_texts()
-
     def apply_texts(self):
         """(Re)traduit tous les textes visibles dans la langue active."""
-        code = i18n.get_lang()
-        self.btn_lang.setText(i18n.FLAGS[code])
-        self.btn_lang.setToolTip(L("Langue : {name}", name=i18n.LANGS[code]))
         self.lbl_tagline.setText(L("Les fichiers de même nom sont remplacés dans la destination."))
         self.lbl_src_title.setText(L("SOURCE"))
         self.lbl_dest_title.setText(L("DESTINATION"))
@@ -809,20 +718,18 @@ class FusionApp(QWidget):
         event.accept()
 
 
-def init_language(app: QApplication, config: dict) -> None:
-    """Langue choisie par l'utilisateur, sinon celle du système (anglais si non prise en charge)."""
-    choice = config.get("language", AUTO)
-    code = choice if choice in i18n.LANGS else detect_system_lang()
+def init_language(app: QApplication) -> None:
+    """Langue du système (anglais si non prise en charge)."""
+    code = detect_system_lang()
     i18n.set_lang(code)
     install_qt_translation(app, code)
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    config = load_config()
-    init_language(app, config)
+    init_language(app)
     socle_qt.apply(app)
     flat_style(app)
-    window = FusionApp(config)
+    window = FusionApp()
     window.show()
     sys.exit(app.exec())

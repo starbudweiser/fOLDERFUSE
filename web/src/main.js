@@ -1,7 +1,7 @@
 // Réplique web de src/fusion_dossiers.py : mêmes textes (mêmes clés de traduction), mêmes états,
 // fusion simulée.
 import "./style.css";
-import { L, P, fmtInt, fmtSize, LANGS, FLAGS, getLang, setLang, systemLang } from "./i18n.js";
+import { L, P, fmtInt, fmtSize, LANGS, getLang, setLang, systemLang } from "./i18n.js";
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -16,8 +16,7 @@ const els = {
   progress: $("#progress"),
   chunk: $("#progress .progress__chunk"),
   label: $("#progress .progress__label"),
-  lang: $("#lang"),
-  langMenu: $("#lang-menu"),
+  lang: $("#sim-lang"),
   simError: $("#sim-error"),
   simStall: $("#sim-stall"),
   simSpace: $("#sim-space"),
@@ -145,71 +144,25 @@ function choose(kind) {
 }
 
 // --- Langue ---
-
-const LANG_KEY = "folderfuse-preview-lang";
-let langChoice = "auto";
-
-function loadLangChoice() {
-  try {
-    langChoice = localStorage.getItem(LANG_KEY) || "auto";
-  } catch {
-    langChoice = "auto";
-  }
-  setLang(langChoice === "auto" ? systemLang() : langChoice);
-}
+// Comme l'appli : langue du système (ici celle du navigateur), sans réglage dans l'interface.
+// La barre « Preview » permet de simuler une autre langue système.
 
 function setLanguage(choice) {
-  langChoice = choice;
-  try {
-    localStorage.setItem(LANG_KEY, choice);
-  } catch {
-    /* préférence non mémorisée : sans gravité */
-  }
   setLang(choice === "auto" ? systemLang() : choice);
   applyTexts();
 }
 
-function buildLangMenu() {
+function buildLangSelect() {
   const sys = systemLang();
-  const items = [["auto", L("Automatique ({lang})", { lang: `${FLAGS[sys]} ${LANGS[sys]}` })], null,
-    ...Object.entries(LANGS).map(([code, name]) => [code, `${FLAGS[code]}  ${name}`])];
-  els.langMenu.replaceChildren(
-    ...items.map((item) => {
-      if (!item) return Object.assign(document.createElement("hr"), { className: "lang-menu__sep" });
-      const [code, label] = item;
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "lang-menu__item";
-      btn.setAttribute("role", "menuitemradio");
-      btn.setAttribute("aria-checked", String(code === langChoice));
-      btn.textContent = label;
-      btn.addEventListener("click", () => {
-        closeLangMenu();
-        setLanguage(code);
-      });
-      return btn;
-    }),
+  els.lang.replaceChildren(
+    new Option(`Système (${LANGS[sys]})`, "auto"),
+    ...Object.entries(LANGS).map(([code, name]) => new Option(name, code)),
   );
-}
-
-function openLangMenu() {
-  buildLangMenu();
-  els.langMenu.hidden = false;
-  els.lang.setAttribute("aria-expanded", "true");
-  els.langMenu.querySelector('[aria-checked="true"]')?.focus();
-}
-
-function closeLangMenu() {
-  els.langMenu.hidden = true;
-  els.lang.setAttribute("aria-expanded", "false");
 }
 
 function applyTexts() {
   const code = getLang();
   document.documentElement.lang = code;
-  els.lang.textContent = FLAGS[code];
-  els.lang.title = L("Langue : {name}", { name: LANGS[code] });
-  els.lang.setAttribute("aria-label", els.lang.title);
   $(".brandbar__meta").textContent = L("Les fichiers de même nom sont remplacés dans la destination.");
   els.src.querySelector(".picker__title").textContent = L("SOURCE");
   els.dest.querySelector(".picker__title").textContent = L("DESTINATION");
@@ -466,22 +419,10 @@ els.dest.addEventListener("click", () => choose("dest"));
 els.src.addEventListener("click", () => choose("src"));
 els.fuse.addEventListener("click", () => (state.running ? stopFusion() : startFusion()));
 els.simSpace.addEventListener("change", renderDetails);
-els.lang.addEventListener("click", (e) => {
-  e.stopPropagation();
-  if (els.langMenu.hidden) openLangMenu();
-  else closeLangMenu();
-});
-document.addEventListener("click", (e) => {
-  if (!els.langMenu.hidden && !els.langMenu.contains(e.target)) closeLangMenu();
-});
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && !els.langMenu.hidden) {
-    closeLangMenu();
-    els.lang.focus();
-  }
-});
+els.lang.addEventListener("change", () => setLanguage(els.lang.value));
 $("#reset").addEventListener("click", reset);
 $("#toggle-theme").addEventListener("click", toggleTheme);
 
-loadLangChoice();
+buildLangSelect();
+setLang(systemLang());
 applyTexts();
