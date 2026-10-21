@@ -1,6 +1,6 @@
 // Équivalent web de src/i18n.py : le texte français sert de clé.
-// La table vient de src/i18n_strings.py (exportée par export_i18n.py avant `npm run dev`).
-import TR from "./i18n.json";
+// La table est celle de l'appli : i18n/strings.json, {texte_fr: [en, it, es]}.
+import TR from "../../i18n/strings.json";
 
 export const LANGS = { fr: "Français", en: "English", it: "Italiano", es: "Español" };
 const INDEX = { en: 0, it: 1, es: 2 };

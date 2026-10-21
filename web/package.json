@@ -5,9 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "predev": "python3 export_i18n.py",
-    "prebuild": "python3 export_i18n.py"
+    "preview": "vite preview"
   },
   "devDependencies": {
     "vite": "^7.3.7"

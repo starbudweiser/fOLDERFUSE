@@ -5,5 +5,5 @@ const SOCLE = "/Volumes/SKYRIM/TOOLS/DESIGN/Socle";
 
 export default defineConfig({
   resolve: { alias: { "@socle": SOCLE } },
-  server: { port: Number(process.env.PORT) || 5174, strictPort: Boolean(process.env.PORT), fs: { allow: [".", SOCLE] } },
+  server: { port: Number(process.env.PORT) || 5174, strictPort: Boolean(process.env.PORT), fs: { allow: [".", "../i18n", SOCLE] } },
 });

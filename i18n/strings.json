@@ -443,5 +443,45 @@
   "The destination volume is full.\nFree up some space, then run the merge again: files already copied will simply be replaced.",
   "Il volume di destinazione è pieno.\nLibera spazio, poi avvia di nuovo l'unione: i file già copiati verranno semplicemente sostituiti.",
   "El volumen de destino está lleno.\nLibera espacio y vuelve a iniciar la fusión: los archivos ya copiados simplemente se reemplazarán."
+ ],
+ "À propos de fOLDERFUSE": [
+  "About fOLDERFUSE",
+  "Informazioni su fOLDERFUSE",
+  "Acerca de fOLDERFUSE"
+ ],
+ "Masquer fOLDERFUSE": [
+  "Hide fOLDERFUSE",
+  "Nascondi fOLDERFUSE",
+  "Ocultar fOLDERFUSE"
+ ],
+ "Masquer les autres": [
+  "Hide Others",
+  "Nascondi altre",
+  "Ocultar otros"
+ ],
+ "Tout afficher": [
+  "Show All",
+  "Mostra tutte",
+  "Mostrar todo"
+ ],
+ "Quitter fOLDERFUSE": [
+  "Quit fOLDERFUSE",
+  "Esci da fOLDERFUSE",
+  "Salir de fOLDERFUSE"
+ ],
+ "Fenêtre": [
+  "Window",
+  "Finestra",
+  "Ventana"
+ ],
+ "Réduire": [
+  "Minimize",
+  "Riduci a icona",
+  "Minimizar"
+ ],
+ "Détails :": [
+  "Details:",
+  "Dettagli:",
+  "Detalles:"
  ]
 }
