@@ -121,11 +121,9 @@ enum Socle {
         static let dangerBorder = dynamic(dark: (0.9373, 0.2667, 0.2667, 1), light: (0.8627, 0.1490, 0.1490, 1))
         /// Texte dans un encart d'erreur, sur danger-bg.
         static let dangerSoft = dynamic(dark: (0.9961, 0.7922, 0.7922, 1), light: (0.4980, 0.1137, 0.1137, 1))
-        /// Fond opaque d'un encart d'information.
-        static let infoBg = dynamic(dark: (0.0471, 0.2275, 0.3216, 1), light: (0.8784, 0.9490, 0.9961, 1))
         /// Contour d'un encart d'information.
         static let infoBorder = dynamic(dark: (0.2196, 0.7412, 0.9725, 1), light: (0.0078, 0.5176, 0.7804, 1))
-        /// Texte dans un encart d'information, sur info-bg.
+        /// Texte dans un encart d'information (fond neutre surface-raised, sans aplat de couleur).
         static let infoSoft = dynamic(dark: (0.7294, 0.9020, 0.9922, 1), light: (0.0471, 0.2902, 0.4314, 1))
         /// Contour de focus clavier, 2px décalé de 2px. ≥ 3:1 sur toutes les surfaces.
         static let focusRing = dynamic(dark: (0.2196, 0.7412, 0.9725, 1), light: (0.0118, 0.4118, 0.6314, 1))
@@ -146,6 +144,7 @@ enum Socle {
         static let space6: CGFloat = 24
         static let space8: CGFloat = 32
         static let radius: CGFloat = 4
+        static let radiusField: CGFloat = 0
         static let radiusMd: CGFloat = 6
         static let radiusLg: CGFloat = 8
         static let radiusXl: CGFloat = 12
@@ -216,6 +215,206 @@ extension View {
     /// Applique un style typographique Socle (police système, taille × échelle, interlettrage).
     func socle(_ style: Socle.TextStyle) -> some View {
         font(style.font).tracking(style.tracking * style.pointSize)
+    }
+}
+
+extension View {
+    /// Zone de saisie Socle (TextField, SecureField, TextEditor) : angles droits, fond creux, filet 1 px,
+    /// marge intérieure `space-3` ; un champ d'une ligne fait au moins `size-control-lg` de haut.
+    func socleField(multiline: Bool = false) -> some View {
+        modifier(SocleField(multiline: multiline))
+    }
+}
+
+struct SocleField: ViewModifier {
+    let multiline: Bool
+    @FocusState private var focused: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .textFieldStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .focused($focused)
+            .socleEditing(focused)
+            .padding(.horizontal, Socle.M.space3)
+            .padding(.vertical, multiline ? Socle.M.space3 : Socle.M.space2)
+            .frame(minHeight: multiline ? nil : Socle.M.sizeControlLg)
+            .background(Socle.C.bgSunken)
+            .overlay(Rectangle().stroke(focused ? Socle.C.focusRing : .clear, lineWidth: 1))
+            .foregroundStyle(Socle.C.textStrong)
+    }
+}
+
+/// Grille de modules Socle : blocs indépendants en colonnes de même largeur (au moins `minimum`), autant que la
+/// largeur en permet, espacées de `space-4`. Agencement en maçonnerie : chaque bloc se place sous la colonne la plus
+/// courte, à sa hauteur naturelle, sans trou sous un bloc plus court que son voisin. Le module où l'on saisit, sinon
+/// celui que la souris survole, reste net ; les autres s'estompent. Chaque bloc de la grille porte `.socleModule()`.
+struct SocleModuleGrid<Content: View>: View {
+    var minimum: CGFloat = 550  // 500 px × échelle de texte 1,1
+    @ViewBuilder var content: Content
+    @State private var spotlight = SocleSpotlight()
+
+    var body: some View {
+        SocleMasonry(minimum: minimum, spacing: Socle.M.space4) { content }
+            .environment(spotlight)
+    }
+}
+
+/// Maçonnerie : colonnes de largeur égale ; chaque élément va sous la colonne la plus courte.
+struct SocleMasonry: Layout {
+    var minimum: CGFloat
+    var spacing: CGFloat
+
+    private func arrange(_ width: CGFloat, _ subviews: Subviews) -> (points: [CGPoint], column: CGFloat, height: CGFloat) {
+        let width = width.isFinite && width > 0 ? width : minimum
+        let n = max(1, Int((width + spacing) / (minimum + spacing)))
+        let column = (width - CGFloat(n - 1) * spacing) / CGFloat(n)
+        var heights = Array(repeating: CGFloat(0), count: n)
+        var points: [CGPoint] = []
+        for view in subviews {
+            let h = view.sizeThatFits(ProposedViewSize(width: column, height: nil)).height
+            let c = heights.indices.min { heights[$0] < heights[$1] } ?? 0
+            points.append(CGPoint(x: CGFloat(c) * (column + spacing), y: heights[c]))
+            heights[c] += h + spacing
+        }
+        return (points, column, max(0, (heights.max() ?? 0) - spacing))
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? minimum
+        return CGSize(width: width, height: arrange(width, subviews).height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let layout = arrange(bounds.width, subviews)
+        for (view, p) in zip(subviews, layout.points) {
+            view.place(at: CGPoint(x: bounds.minX + p.x, y: bounds.minY + p.y), proposal: ProposedViewSize(width: layout.column, height: nil))
+        }
+    }
+}
+
+/// Module actif d'une grille : celui où l'on saisit, sinon celui survolé.
+@MainActor @Observable
+final class SocleSpotlight {
+    static let dimmed = 0.45
+    var hovered: UUID?
+    var editing: UUID?
+    var active: UUID? { editing ?? hovered }
+}
+
+private struct SocleModuleKey: EnvironmentKey {
+    static let defaultValue: UUID? = nil
+}
+
+extension EnvironmentValues {
+    var socleModule: UUID? {
+        get { self[SocleModuleKey.self] }
+        set { self[SocleModuleKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// Bloc d'une `SocleModuleGrid` : suivi du survol, estompé quand un autre bloc est actif. Sans grille : sans effet.
+    func socleModule() -> some View { modifier(SocleModule()) }
+
+    /// Signale à la grille qu'un champ prend ou perd le focus (déjà fait par `.socleField()`).
+    func socleEditing(_ focused: Bool) -> some View { modifier(SocleEditing(focused: focused)) }
+}
+
+private struct SocleModule: ViewModifier {
+    @Environment(SocleSpotlight.self) private var spotlight: SocleSpotlight?
+    @State private var id = UUID()
+
+    func body(content: Content) -> some View {
+        content
+            .environment(\.socleModule, id)
+            .opacity(spotlight?.active.map { $0 == id ? 1 : SocleSpotlight.dimmed } ?? 1)
+            .animation(.easeInOut(duration: 0.15), value: spotlight?.active)
+            .onHover { inside in
+                guard let spotlight else { return }
+                if inside { spotlight.hovered = id } else if spotlight.hovered == id { spotlight.hovered = nil }
+            }
+    }
+}
+
+private struct SocleEditing: ViewModifier {
+    @Environment(SocleSpotlight.self) private var spotlight: SocleSpotlight?
+    @Environment(\.socleModule) private var module
+    let focused: Bool
+
+    func body(content: Content) -> some View {
+        content.onChange(of: focused) { _, now in
+            guard let spotlight, let module else { return }
+            if now { spotlight.editing = module } else if spotlight.editing == module { spotlight.editing = nil }
+        }
+    }
+}
+
+extension View {
+    /// Valeur saisie (nombre, montant, durée) : en `accent-text`, à poser avant `.socleField()`.
+    func socleValue() -> some View { foregroundStyle(Socle.C.accentText) }
+}
+
+/// Choix à niveaux Socle : l'option choisie prend la couleur de son niveau (fort, intermédiaire, neutre).
+struct SocleSegmented<Value: Hashable>: View {
+    enum Tone { case strong, soft, neutral }
+    let options: [Value]
+    let selection: Value
+    let label: (Value) -> String
+    var tone: (Value) -> Tone = { _ in .strong }
+    let onSelect: (Value) -> Void
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(options, id: \.self) { option in
+                let on = option == selection
+                Button { onSelect(option) } label: {
+                    Text(label(option)).socle(Socle.T.label)
+                        .padding(.horizontal, Socle.M.space2_5).frame(minHeight: 26)
+                        .foregroundStyle(on ? foreground(tone(option)) : Socle.C.textMuted)
+                        .background(on ? background(tone(option)) : Color.clear, in: RoundedRectangle(cornerRadius: Socle.M.radius))
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(2)
+        .background(Socle.C.bgSunken, in: RoundedRectangle(cornerRadius: Socle.M.radius))
+        .fixedSize()
+    }
+
+    private func background(_ t: Tone) -> Color {
+        switch t {
+        case .strong: Socle.C.accentFill
+        case .soft: Socle.C.accentTint
+        case .neutral: Socle.C.control
+        }
+    }
+
+    private func foreground(_ t: Tone) -> Color {
+        switch t {
+        case .strong: Socle.C.onAccentFill
+        case .soft: Socle.C.infoSoft
+        case .neutral: Socle.C.text
+        }
+    }
+}
+
+/// Étiquette de valeur Socle (commune, mot-clé) : `accent-tint`, texte `info-soft`, croix pour retirer.
+struct SocleChip: View {
+    let text: String
+    var onRemove: (() -> Void)?
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(text)
+            if let onRemove {
+                Button(action: onRemove) { Image(systemName: "xmark").font(.system(size: 9, weight: .bold)) }.buttonStyle(.plain)
+            }
+        }
+        .foregroundStyle(Socle.C.infoSoft)
+        .padding(.horizontal, Socle.M.space2).padding(.vertical, 3)
+        .background(Socle.C.accentTint, in: Capsule())
     }
 }
 
