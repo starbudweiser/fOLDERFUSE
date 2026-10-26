@@ -9,7 +9,7 @@ ROOT="$(cd "$HERE/.." && pwd)"
 OUT_DIR="${1:-$ROOT}"
 APP_NAME="fOLDERFUSE"
 BUNDLE_ID="fOLDERFUSE"          # inchangé d'une version à l'autre : macOS garde les autorisations
-VERSION="1.0.0"
+VERSION="1.0.1"
 ICON="$ROOT/assets/icon.icns"
 APP="$OUT_DIR/$APP_NAME.app"
 
