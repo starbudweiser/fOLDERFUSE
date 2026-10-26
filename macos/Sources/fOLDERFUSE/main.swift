@@ -27,6 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.center()
         window.makeKeyAndOrderFront(nil)
         NSApp.activate()
+        UpdateCheck.start(repo: "fOLDERFUSE", lang: I18n.lang)  // nouvelle version ? (au plus une fois par jour)
 
         // Vérification visuelle (développement) : FOLDERFUSE_SNAPSHOT=<fichier.png> enregistre la fenêtre et quitte
         if let out = ProcessInfo.processInfo.environment["FOLDERFUSE_SNAPSHOT"] {
