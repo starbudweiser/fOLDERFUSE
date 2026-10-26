@@ -23,6 +23,13 @@ In the Finder, copying a folder onto another one with the same name replaces the
 - Native Swift app, about 1 MB.
 - Interface in **English, French, Italian and Spanish** (follows your Mac's language).
 
+### What's new in 1.0.1
+
+
+### Updates
+
+From version 1.0.1 the app checks once a day whether a newer release exists on GitHub and offers to open the Nexus page, remind you later or skip that version. Nothing is downloaded or installed automatically. The full history is in [CHANGELOG.md](CHANGELOG.md).
+
 ### Screenshots
 
 ![Source, destination, merge](docs/screenshots/01_home.png)
@@ -72,6 +79,13 @@ Dans le Finder, copier un dossier sur un autre du même nom remplace tout le dos
 - Progression, détection des blocages et arrêt propre à tout moment.
 - Appli Swift native d'environ 1 Mo.
 - Interface en **français, anglais, italien et espagnol** (suit la langue du Mac).
+
+### Nouveautés de la 1.0.1
+
+
+### Mises à jour
+
+À partir de la version 1.0.1, l'appli vérifie une fois par jour si une version plus récente existe sur GitHub et propose d'ouvrir la page Nexus, de rappeler plus tard ou d'ignorer cette version. Rien n'est téléchargé ni installé automatiquement. L'historique complet est dans [CHANGELOG.md](CHANGELOG.md).
 
 ### Captures d'écran
 
