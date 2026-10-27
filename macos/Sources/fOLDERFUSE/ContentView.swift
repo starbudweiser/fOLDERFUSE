@@ -37,7 +37,7 @@ struct ContentView: View {
 
     private var header: some View {
         VStack(spacing: 2) {
-            Text(verbatim: "fOLDERFUSE").socle(Socle.T.heading).foregroundStyle(BRAND_TEXT)
+            Text(branded: "fOLDERFUSE").socle(Socle.T.heading).foregroundStyle(BRAND_TEXT)
             Text(L("Les fichiers de même nom sont remplacés dans la destination."))
                 .socle(Socle.T.meta).foregroundStyle(BRAND_TEXT_MUTED)
         }

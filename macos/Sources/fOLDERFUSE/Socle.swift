@@ -8,6 +8,7 @@
 //     Text("Titre").socle(.heading)                   // style typographique (× Socle.scale)
 //     .foregroundStyle(Socle.C.textStrong)            // couleurs : Socle.C.*, mesures : Socle.M.*
 //     Button("FUSIONNER") {}.buttonStyle(SocleButtonStyle(.primary))
+//     Socle.brand("nEXUSWATCH", color: …); Text(branded: s)  // initiale du nom dans la couleur du logo
 
 import AppKit
 import SwiftUI
@@ -87,8 +88,6 @@ enum Socle {
         static let onAccentFill = dynamic(dark: (1.0000, 1.0000, 1.0000, 1), light: (1.0000, 1.0000, 1.0000, 1))
         /// L'accent en texte : chemins, liens, valeurs mises en avant. ≥ 5,4:1 sur tous les fonds.
         static let accentText = dynamic(dark: (0.2196, 0.7412, 0.9725, 1), light: (0.0118, 0.4118, 0.6314, 1))
-        /// Fond opaque des badges d'accent (texte info-soft) et de la zone de dépôt survolée.
-        static let accentTint = dynamic(dark: (0.0471, 0.2275, 0.3216, 1), light: (0.8784, 0.9490, 0.9961, 1))
         /// L'appel principal d'un écran — un seul par écran (Ouvrir, Importer, Créer). Libellé on-action.
         static let action = dynamic(dark: (0.9843, 0.7490, 0.1412, 1), light: (0.9843, 0.7490, 0.1412, 1))
         /// Survol du bouton d'action.
@@ -156,6 +155,9 @@ enum Socle {
         static let sizeChoice: CGFloat = 16
         static let sizeScrollbar: CGFloat = 8
         static let sizeSidebarMin: CGFloat = 200
+        static let sizeSplashWidth: CGFloat = 500
+        static let sizeSplashHeight: CGFloat = 190
+        static let sizeSplashTitle: CGFloat = 40
         static let opacityDisabled: CGFloat = 0.4
     }
 
@@ -215,6 +217,56 @@ extension View {
     /// Applique un style typographique Socle (police système, taille × échelle, interlettrage).
     func socle(_ style: Socle.TextStyle) -> some View {
         font(style.font).tracking(style.tracking * style.pointSize)
+    }
+}
+
+/// Nom de l'appli : son initiale en minuscule (le « m » de mORTEX, le « n » de nEXUSWATCH…) prend la couleur
+/// de son logo partout où le nom est écrit. Poser `Socle.brand("nEXUSWATCH", color: …)` au démarrage, puis
+/// écrire `Text(branded: texte)` pour tout texte qui peut contenir le nom (titres, textes, dialogues).
+/// Titres de fenêtre, menus et notifications système n'acceptent pas de couleur.
+extension Socle {
+    nonisolated(unsafe) private(set) static var brandNames: [String] = []
+    nonisolated(unsafe) private(set) static var brandColor: Color = .accentColor
+
+    static func brand(_ names: String..., color: Color) {
+        brandNames = names
+        brandColor = color
+    }
+
+    /// Texte avec l'initiale minuscule de chaque occurrence du nom de l'appli colorée.
+    static func branded(_ text: String) -> AttributedString {
+        branded(AttributedString(text))
+    }
+
+    /// Même chose sur un texte déjà mis en forme (Markdown…), sans toucher à ses autres attributs.
+    static func branded(_ attributed: AttributedString) -> AttributedString {
+        var out = attributed
+        let text = String(attributed.characters)
+        for name in brandNames {
+            let head = name.prefix { $0.isLowercase }
+            guard !head.isEmpty else { continue }
+            var from = text.startIndex
+            while let r = text.range(of: name, range: from..<text.endIndex) {
+                from = r.upperBound
+                let before = r.lowerBound == text.startIndex ? nil : text[text.index(before: r.lowerBound)]
+                let after = r.upperBound == text.endIndex ? nil : text[r.upperBound]
+                // Pas dans un mot, un chemin, un identifiant ni une adresse
+                if let b = before, b.isLetter || b.isNumber || "./@-_".contains(b) { continue }
+                if let a = after, a.isLetter || a.isNumber || "-_".contains(a) { continue }
+                let lo = text.distance(from: text.startIndex, to: r.lowerBound)
+                let start = out.index(out.startIndex, offsetByCharacters: lo)
+                let end = out.index(start, offsetByCharacters: head.count)
+                out[start..<end].foregroundColor = brandColor
+            }
+        }
+        return out
+    }
+}
+
+extension Text {
+    /// Texte où l'initiale du nom de l'appli prend la couleur de son logo (voir `Socle.brand`).
+    init(branded text: String) {
+        self.init(Socle.branded(text))
     }
 }
 
@@ -386,7 +438,7 @@ struct SocleSegmented<Value: Hashable>: View {
     private func background(_ t: Tone) -> Color {
         switch t {
         case .strong: Socle.C.accentFill
-        case .soft: Socle.C.accentTint
+        case .soft: Socle.C.control
         case .neutral: Socle.C.control
         }
     }
@@ -394,13 +446,13 @@ struct SocleSegmented<Value: Hashable>: View {
     private func foreground(_ t: Tone) -> Color {
         switch t {
         case .strong: Socle.C.onAccentFill
-        case .soft: Socle.C.infoSoft
+        case .soft: Socle.C.accentText
         case .neutral: Socle.C.text
         }
     }
 }
 
-/// Étiquette de valeur Socle (commune, mot-clé) : `accent-tint`, texte `info-soft`, croix pour retirer.
+/// Étiquette de valeur Socle (commune, mot-clé) : fond `control`, texte `accent-text`, croix pour retirer.
 struct SocleChip: View {
     let text: String
     var onRemove: (() -> Void)?
@@ -412,9 +464,9 @@ struct SocleChip: View {
                 Button(action: onRemove) { Image(systemName: "xmark").font(.system(size: 9, weight: .bold)) }.buttonStyle(.plain)
             }
         }
-        .foregroundStyle(Socle.C.infoSoft)
+        .foregroundStyle(Socle.C.accentText)
         .padding(.horizontal, Socle.M.space2).padding(.vertical, 3)
-        .background(Socle.C.accentTint, in: Capsule())
+        .background(Socle.C.control, in: Capsule())
     }
 }
 

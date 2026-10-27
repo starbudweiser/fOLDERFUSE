@@ -11,6 +11,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Socle.apply()
+        // « f » dans le bleu du logo, foncé pour rester lisible sur l'en-tête orange (4,5:1)
+        Socle.brand("fOLDERFUSE", color: Color(red: 0x08 / 255, green: 0x45 / 255, blue: 0x7d / 255))
         buildMenu()
 
         let host = NSHostingView(rootView: ContentView(model: model))
