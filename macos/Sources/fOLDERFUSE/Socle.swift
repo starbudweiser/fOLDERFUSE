@@ -124,6 +124,20 @@ enum Socle {
         static let infoBorder = dynamic(dark: (0.2196, 0.7412, 0.9725, 1), light: (0.0078, 0.5176, 0.7804, 1))
         /// Texte dans un encart d'information (fond neutre surface-raised, sans aplat de couleur).
         static let infoSoft = dynamic(dark: (0.7294, 0.9020, 0.9922, 1), light: (0.0471, 0.2902, 0.4314, 1))
+        /// Fond plein d'une bulle d'aide ou d'explication (bleu).
+        static let bubbleHelp = dynamic(dark: (0.0549, 0.6471, 0.9137, 1), light: (0.0549, 0.6471, 0.9137, 1))
+        /// Fond plein d'une bulle de conseil ou d'astuce (vert).
+        static let bubbleTip = dynamic(dark: (0.1333, 0.7725, 0.3686, 1), light: (0.1333, 0.7725, 0.3686, 1))
+        /// Fond plein d'une bulle d'attention (jaune).
+        static let bubbleWarning = dynamic(dark: (0.9843, 0.7490, 0.1412, 1), light: (0.9843, 0.7490, 0.1412, 1))
+        /// Fond plein d'une bulle d'action irréversible (rouge).
+        static let bubbleDanger = dynamic(dark: (0.9373, 0.2667, 0.2667, 1), light: (0.9373, 0.2667, 0.2667, 1))
+        /// Fond plein d'une bulle de l'intelligence artificielle (ambre).
+        static let bubbleAi = dynamic(dark: (0.9608, 0.6196, 0.0431, 1), light: (0.9608, 0.6196, 0.0431, 1))
+        /// Texte et titre d'une bulle, sur son fond plein coloré, dans les deux thèmes.
+        static let onBubble = dynamic(dark: (0.1020, 0.1020, 0.1020, 1), light: (0.1020, 0.1020, 0.1020, 1))
+        /// Carré sombre qui porte l'icône blanche d'une bulle.
+        static let bubbleIcon = dynamic(dark: (0.1490, 0.1490, 0.1490, 1), light: (0.1490, 0.1490, 0.1490, 1))
         /// Contour de focus clavier, 2px décalé de 2px. ≥ 3:1 sur toutes les surfaces.
         static let focusRing = dynamic(dark: (0.2196, 0.7412, 0.9725, 1), light: (0.0118, 0.4118, 0.6314, 1))
         /// Voile derrière un dialogue ; avec le filet border, c'est ce qui le détache (aucune ombre).
