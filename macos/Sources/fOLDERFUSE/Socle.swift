@@ -8,7 +8,7 @@
 //     Text("Titre").socle(.heading)                   // style typographique (× Socle.scale)
 //     .foregroundStyle(Socle.C.textStrong)            // couleurs : Socle.C.*, mesures : Socle.M.*
 //     Button("FUSIONNER") {}.buttonStyle(SocleButtonStyle(.primary))
-//     Socle.brand("nEXUSWATCH", color: …); Text(branded: s)  // initiale du nom dans la couleur du logo
+//     Socle.brand("nEXUSWATCH", color: …); Text(branded: s)  // minuscule du nom dans la couleur du logo
 
 import AppKit
 import SwiftUI
@@ -234,7 +234,7 @@ extension View {
     }
 }
 
-/// Nom de l'appli : son initiale en minuscule (le « m » de mORTEX, le « n » de nEXUSWATCH…) prend la couleur
+/// Nom de l'appli : sa lettre minuscule, à toute place (le « m » de mORTEX, le « e » de CAREERDeSK…), prend la couleur
 /// de son logo partout où le nom est écrit. Poser `Socle.brand("nEXUSWATCH", color: …)` au démarrage, puis
 /// écrire `Text(branded: texte)` pour tout texte qui peut contenir le nom (titres, textes, dialogues).
 /// Titres de fenêtre, menus et notifications système n'acceptent pas de couleur.
@@ -247,7 +247,7 @@ extension Socle {
         brandColor = color
     }
 
-    /// Texte avec l'initiale minuscule de chaque occurrence du nom de l'appli colorée.
+    /// Texte avec la lettre minuscule de chaque occurrence du nom de l'appli colorée.
     static func branded(_ text: String) -> AttributedString {
         branded(AttributedString(text))
     }
@@ -257,8 +257,8 @@ extension Socle {
         var out = attributed
         let text = String(attributed.characters)
         for name in brandNames {
-            let head = name.prefix { $0.isLowercase }
-            guard !head.isEmpty else { continue }
+            let marks = name.enumerated().filter { $0.element.isLowercase }.map(\.offset)
+            guard !marks.isEmpty else { continue }
             var from = text.startIndex
             while let r = text.range(of: name, range: from..<text.endIndex) {
                 from = r.upperBound
@@ -268,9 +268,10 @@ extension Socle {
                 if let b = before, b.isLetter || b.isNumber || "./@-_".contains(b) { continue }
                 if let a = after, a.isLetter || a.isNumber || "-_".contains(a) { continue }
                 let lo = text.distance(from: text.startIndex, to: r.lowerBound)
-                let start = out.index(out.startIndex, offsetByCharacters: lo)
-                let end = out.index(start, offsetByCharacters: head.count)
-                out[start..<end].foregroundColor = brandColor
+                for mark in marks {
+                    let start = out.index(out.startIndex, offsetByCharacters: lo + mark)
+                    out[start..<out.index(afterCharacter: start)].foregroundColor = brandColor
+                }
             }
         }
         return out
@@ -278,7 +279,7 @@ extension Socle {
 }
 
 extension Text {
-    /// Texte où l'initiale du nom de l'appli prend la couleur de son logo (voir `Socle.brand`).
+    /// Texte où la lettre minuscule du nom de l'appli prend la couleur de son logo (voir `Socle.brand`).
     init(branded text: String) {
         self.init(Socle.branded(text))
     }
@@ -537,5 +538,15 @@ struct SocleButtonStyle: ButtonStyle {
             case .tertiary: return pressed ? Socle.C.controlPressed : hovered ? Socle.C.controlStrong : .clear
             }
         }
+    }
+}
+
+extension NSWindow {
+    /// Centre exactement la fenêtre sur l'écran du pointeur, dans sa zone utile (`center()` de macOS la place au-dessus du centre).
+    @MainActor func socleCenter() {
+        let pointeur = NSEvent.mouseLocation
+        let ecran = NSScreen.screens.first { NSMouseInRect(pointeur, $0.frame, false) } ?? screen ?? NSScreen.main
+        guard let zone = ecran?.visibleFrame else { return }
+        setFrameOrigin(NSPoint(x: zone.midX - frame.width / 2, y: zone.midY - frame.height / 2))
     }
 }
