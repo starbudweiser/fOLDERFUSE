@@ -29,7 +29,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.center()
         window.makeKeyAndOrderFront(nil)
         NSApp.activate()
-        UpdateCheck.start(repo: "fOLDERFUSE", lang: I18n.lang)  // nouvelle version ? (au plus une fois par jour)
+        UpdateEngine.shared.configure(repo: "fOLDERFUSE", lang: { I18n.lang })
+        UpdateEngine.shared.start()  // nouvelle version ? (au plus une fois par jour)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { UpdateEngine.shared.installAppMenuItem() }
 
         // Vérification visuelle (développement) : FOLDERFUSE_SNAPSHOT=<fichier.png> enregistre la fenêtre et quitte
         if let out = ProcessInfo.processInfo.environment["FOLDERFUSE_SNAPSHOT"] {
