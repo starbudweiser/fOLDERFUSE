@@ -6,13 +6,12 @@ import AppKit
 
 @MainActor
 enum UpdateCheck {
-    static let kitPage = "https://www.nexusmods.com/skyrimspecialedition/mods/196272?tab=files"
     private static let day: TimeInterval = 24 * 3600
     private static let texts: [String: [String]] = [   // titre, message, ouvrir, plus tard, ignorer
-        "fr": ["Nouvelle version", "%@ %@ est disponible (vous avez la %@).", "Ouvrir la page Nexus", "Plus tard", "Ignorer cette version"],
-        "en": ["New version", "%@ %@ is available (you have %@).", "Open the Nexus page", "Later", "Skip this version"],
-        "es": ["Nueva versión", "%@ %@ está disponible (tienes la %@).", "Abrir la página de Nexus", "Más tarde", "Omitir esta versión"],
-        "it": ["Nuova versione", "%@ %@ è disponibile (hai la %@).", "Apri la pagina Nexus", "Più tardi", "Ignora questa versione"],
+        "fr": ["Nouvelle version", "%@ %@ est disponible (vous avez la %@).", "Ouvrir la page de téléchargement", "Plus tard", "Ignorer cette version"],
+        "en": ["New version", "%@ %@ is available (you have %@).", "Open the download page", "Later", "Skip this version"],
+        "es": ["Nueva versión", "%@ %@ está disponible (tienes la %@).", "Abrir la página de descarga", "Más tarde", "Omitir esta versión"],
+        "it": ["Nuova versione", "%@ %@ è disponibile (hai la %@).", "Apri la pagina di download", "Più tardi", "Ignora questa versione"],
     ]
 
     static func numbers(_ v: String) -> [Int] {
@@ -27,7 +26,7 @@ enum UpdateCheck {
         return !a.isEmpty && !b.isEmpty && a.lexicographicallyPrecedes(b) == false && a != b
     }
 
-    static func start(repo: String, lang: String, page: String = kitPage) {
+    static func start(repo: String, lang: String, page: String? = nil) {
         guard Bundle.main.bundleURL.pathExtension == "app",
               let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else { return }
         let defaults = UserDefaults.standard
@@ -41,7 +40,7 @@ enum UpdateCheck {
                 defaults.set(latest, forKey: "updateCheck.latest")
             }
             guard isNewer(latest, than: current), defaults.string(forKey: "updateCheck.skipped") != latest else { return }
-            ask(latest: latest, current: current, lang: lang, page: page)
+            ask(latest: latest, current: current, lang: lang, page: page ?? "https://github.com/starbudweiser/\(repo)/releases/latest")
         }
     }
 
