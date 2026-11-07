@@ -58,14 +58,10 @@ struct FolderPicker: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: Socle.M.space1) {
-                Text(title).socle(Socle.T.heading).foregroundStyle(Socle.C.textStrong)
-                if path.isEmpty {
-                    Text(L("Choisir un dossier")).socle(Socle.T.body).foregroundStyle(Socle.C.textMuted)
-                } else {
-                    Text(verbatim: shortPath(path)).socle(Socle.T.mono).foregroundStyle(Socle.C.accentText)
-                }
-                Text(verbatim: detail.isEmpty ? " " : detail).socle(Socle.T.meta).foregroundStyle(Socle.C.textSubtle)
+            // Hauteur fixée par la mise en page complète (cachée) ; sans détail, le contenu visible est centré verticalement.
+            ZStack {
+                content(detailLine: true).hidden()
+                content(detailLine: !detail.isEmpty)
             }
             .lineLimit(1)
             .frame(maxWidth: .infinity)
@@ -74,6 +70,20 @@ struct FolderPicker: View {
         .buttonStyle(PickerStyle())
         .disabled(!enabled)
         .help(path)
+    }
+
+    private func content(detailLine: Bool) -> some View {
+        VStack(spacing: Socle.M.space1) {
+            Text(title).socle(Socle.T.heading).foregroundStyle(Socle.C.textStrong)
+            if path.isEmpty {
+                Text(L("Choisir un dossier")).socle(Socle.T.body).foregroundStyle(Socle.C.textMuted)
+            } else {
+                Text(verbatim: shortPath(path)).socle(Socle.T.mono).foregroundStyle(Socle.C.accentText)
+            }
+            if detailLine {
+                Text(verbatim: detail.isEmpty ? " " : detail).socle(Socle.T.meta).foregroundStyle(Socle.C.textSubtle)
+            }
+        }
     }
 
     private func shortPath(_ p: String, maxChars: Int = 30) -> String {
