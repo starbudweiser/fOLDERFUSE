@@ -26,8 +26,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.isReleasedWhenClosed = false
         window.backgroundColor = NSColor(Socle.C.bg)
         model.window = window
-        window.center()
+        host.layoutSubtreeIfNeeded()
+        window.setContentSize(host.fittingSize)
+        window.socleCenter()  // centre exact (center() de macOS place la fenêtre au-dessus du centre)
         window.makeKeyAndOrderFront(nil)
+        DispatchQueue.main.async { [self] in window.socleCenter() }  // après la mise en page SwiftUI définitive
         NSApp.activate()
         UpdateEngine.shared.configure(repo: "fOLDERFUSE", lang: { I18n.lang })
         UpdateEngine.shared.start()  // nouvelle version ? (au plus une fois par jour)
