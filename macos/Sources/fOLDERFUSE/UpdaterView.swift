@@ -22,7 +22,7 @@ final class UpdateWindowController: NSObject, NSWindowDelegate {
         guard let window else { return }
         window.title = Updater.text("title", lang: engine.currentLang)
         window.contentView = NSHostingView(rootView: UpdateView(engine: engine, plan: plan, close: { [weak self] in self?.window?.close() }))
-        window.socleCenter()
+        window.updaterCenter()
         NSApp.activate()
         window.orderFrontRegardless()
         window.makeKeyAndOrderFront(nil)
@@ -150,5 +150,31 @@ struct UpdateView: View {
         default:
             EmptyView()
         }
+    }
+}
+
+extension NSWindow {
+    /// Centre la fenêtre sur la fenêtre de l'appli (la fenêtre principale, sinon une autre fenêtre visible), où qu'elle soit à l'écran ;
+    /// sans fenêtre d'appli visible, au centre de l'écran du pointeur.
+    @MainActor func updaterCenter() {
+        let candidates = NSApp.windows.filter { $0 !== self && $0.isVisible && $0.styleMask.contains(.titled) && !($0 is NSPanel) }
+        guard let host = candidates.first(where: { $0.isKeyWindow || $0.isMainWindow }) ?? candidates.first else { socleCenter(); return }
+        setFrameOrigin(NSPoint(x: host.frame.midX - frame.width / 2, y: host.frame.midY - frame.height / 2))
+    }
+}
+
+extension NSAlert {
+    /// Comme `runModal()`, mais centrée sur la fenêtre de l'appli : `runModal()` replace lui-même l'alerte dans le tiers haut de l'écran.
+    @MainActor @discardableResult func runCenteredOnAppWindow() -> NSApplication.ModalResponse {
+        layout()
+        window.updaterCenter()
+        // L'alerte se replace à son affichage : on recentre au tour de boucle suivant, une fois la fenêtre à l'écran.
+        for delay in [0.0, 0.05, 0.2] {
+            let t = Timer(timeInterval: delay, repeats: false) { [weak self] _ in MainActor.assumeIsolated { self?.window.updaterCenter() } }
+            RunLoop.main.add(t, forMode: .common)
+        }
+        let response = NSApp.runModal(for: window)
+        window.orderOut(nil)
+        return response
     }
 }

@@ -244,6 +244,7 @@ enum Updater {
             "err_net": "Impossible de joindre GitHub. Réessayez plus tard.",
             "err_verify": "Le paquet téléchargé n'a pas passé les contrôles de sécurité. Rien n'a été installé.",
             "err_install": "L'installation a échoué. L'ancienne version est conservée.",
+            "err_busy": "Une opération est en cours. Réessayez après.",
             "err_denied": "Droits refusés. Vous pouvez télécharger la mise à jour à la main.",
             "open_page": "Ouvrir la page de téléchargement", "close": "Fermer",
         ],
@@ -257,6 +258,7 @@ enum Updater {
             "err_net": "Could not reach GitHub. Try again later.",
             "err_verify": "The downloaded package failed the security checks. Nothing was installed.",
             "err_install": "The installation failed. The previous version is kept.",
+            "err_busy": "An operation is running. Try again afterwards.",
             "err_denied": "Permission denied. You can download the update by hand.",
             "open_page": "Open the download page", "close": "Close",
         ],
@@ -270,6 +272,7 @@ enum Updater {
             "err_net": "No se puede contactar con GitHub. Inténtalo más tarde.",
             "err_verify": "El paquete descargado no superó los controles de seguridad. No se instaló nada.",
             "err_install": "La instalación falló. Se conserva la versión anterior.",
+            "err_busy": "Hay una operación en curso. Inténtalo después.",
             "err_denied": "Permiso denegado. Puedes descargar la actualización a mano.",
             "open_page": "Abrir la página de descarga", "close": "Cerrar",
         ],
@@ -283,6 +286,7 @@ enum Updater {
             "err_net": "Impossibile raggiungere GitHub. Riprova più tardi.",
             "err_verify": "Il pacchetto scaricato non ha superato i controlli di sicurezza. Non è stato installato nulla.",
             "err_install": "L'installazione non è riuscita. La versione precedente è conservata.",
+            "err_busy": "Un'operazione è in corso. Riprova dopo.",
             "err_denied": "Permesso negato. Puoi scaricare l'aggiornamento a mano.",
             "open_page": "Apri la pagina di download", "close": "Chiudi",
         ],
@@ -311,6 +315,8 @@ final class UpdateEngine: ObservableObject {
     static let shared = UpdateEngine()
 
     @Published private(set) var state = State.idle
+    /// Mise à jour en cours de proposition ou d'installation (pour les écrans de réglages de l'appli).
+    @Published private(set) var plan: UpdatePlan?
     private(set) var repo = ""
     private(set) var lang: () -> String = { Locale.preferredLanguages.first ?? "en" }
     private(set) var brandName: String?
@@ -369,7 +375,7 @@ final class UpdateEngine: ObservableObject {
     /// Menu « Rechercher les mises à jour… » : ignore le délai d'un jour et la version ignorée, répond toujours.
     func checkNow() { check(manual: true) }
 
-    func check(manual: Bool) {
+    func check(manual: Bool = false) {
         guard !isBusy, !currentVersion.isEmpty else { return }
         if case .available(let plan) = state, manual { present(plan); return }
         state = .checking
@@ -387,6 +393,7 @@ final class UpdateEngine: ObservableObject {
                 return
             }
             let plan = UpdatePlan(current: currentVersion, target: target, releases: newer)
+            self.plan = plan
             state = .available(plan)
             if manual { present(plan) } else if defaults.string(forKey: "updater.skipped") != target.version { presentWhenActive(plan) }
         }
@@ -417,8 +424,11 @@ final class UpdateEngine: ObservableObject {
         let alert = NSAlert()
         alert.messageText = title
         alert.informativeText = text
-        alert.runModal()
+        alert.runCenteredOnAppWindow()
     }
+
+    /// Texte d'un état d'échec (clé err_*), dans la langue de l'appli.
+    func message(for key: String) -> String { Updater.text(key, lang: currentLang) }
 
     func skip(_ plan: UpdatePlan) {
         defaults.set(plan.target.version, forKey: "updater.skipped")
@@ -561,7 +571,7 @@ final class UpdateEngine: ObservableObject {
 
     func install(_ plan: UpdatePlan) {
         guard !isBusy else { return }
-        guard canInstall() else { state = .failed("err_install"); return }
+        guard canInstall() else { state = .failed("err_busy"); return }
         state = .downloading(0)
         Task {
             guard let zip = await download(plan.target.zipURL, progress: { p in

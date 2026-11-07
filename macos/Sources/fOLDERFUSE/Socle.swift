@@ -120,6 +120,8 @@ enum Socle {
         static let dangerBorder = dynamic(dark: (0.9373, 0.2667, 0.2667, 1), light: (0.8627, 0.1490, 0.1490, 1))
         /// Texte dans un encart d'erreur, sur danger-bg.
         static let dangerSoft = dynamic(dark: (0.9961, 0.7922, 0.7922, 1), light: (0.4980, 0.1137, 0.1137, 1))
+        /// Aplat rouge atténué d'un bouton ou d'une pastille d'état « refusé » sélectionné ; texte text-strong dessus. Moins vif que danger-border.
+        static let dangerFill = dynamic(dark: (0.5725, 0.2078, 0.2078, 1), light: (0.9216, 0.5647, 0.5647, 1))
         /// Contour d'un encart d'information.
         static let infoBorder = dynamic(dark: (0.2196, 0.7412, 0.9725, 1), light: (0.0078, 0.5176, 0.7804, 1))
         /// Texte dans un encart d'information (fond neutre surface-raised, sans aplat de couleur).
