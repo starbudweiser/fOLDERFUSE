@@ -2,6 +2,16 @@
 
 Notes de version / release notes (EN + FR). Translations in IT and ES: see the Nexus Mods page.
 
+## 2.0.0
+
+**English**
+
+- Version number aligned across the Skyrim Mac Toolkit (2.0.0). No change in the app itself.
+
+**Français**
+
+- Numéro de version commun à tout le Skyrim Mac Toolkit (2.0.0). Aucun changement dans l'appli elle-même.
+
 ## 1.3.0
 
 **English**
