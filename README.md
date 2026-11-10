@@ -2,25 +2,21 @@
 
 # fOLDERFUSE
 
-[![Listed on OpenMacApps](https://openmacapps.com/badge.svg)](https://openmacapps.com/apps/folderfuse/)
+[![Listed on OpenMacApps](https://openmacapps.com/badge.svg)](https://openmacapps.com/apps/folderfuse/) [![Latest release](https://img.shields.io/github/v/release/starbudweiser/fOLDERFUSE)](https://github.com/starbudweiser/fOLDERFUSE/releases/latest) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-**Merges one folder into another the way Windows does it — files with the same name are replaced.**  
-*Fusionne un dossier dans un autre comme sous Windows — les fichiers de même nom sont remplacés.*
+**Merges one folder into another the way Windows does it — files with the same name are replaced.**
 
-🍏 **Native Mac app written in Swift, signed and notarized by Apple.** · *Appli Mac native écrite en Swift, signée et notarisée par Apple.*
+🇬🇧 English · 🇫🇷 [Français](#français)
 
-🇬🇧 [English](#-english) · 🇫🇷 [Français](#-français)
+## About
 
-💬 **Support & community:** [Discord](https://discord.gg/xdDVDPQsYs) · *Aide et communauté : [Discord](https://discord.gg/xdDVDPQsYs)*
+fOLDERFUSE — Merges one folder into another the way Windows does it — files with the same name are replaced. By Starbudweiser & Claude Code (Anthropic). MIT License, © 2026 Starbudweiser. Provided as is, without warranty of any kind. See **About fOLDERFUSE** in the app menu.
 
----
-## 🇬🇧 English
-
-### What it does
+🍏 **Native Mac app written in Swift, signed and notarized by Apple.**
 
 In the Finder, copying a folder onto another one with the same name replaces the whole folder. Modders expect a merge. fOLDERFUSE merges the content of a source folder into a destination, replacing same-name files and keeping everything else.
 
-### Features
+## Features
 
 - Windows-style merge: same-name files replaced, other files kept, source folder untouched.
 - Summary before merging: number of files replaced and their current size.
@@ -35,14 +31,14 @@ In the Finder, copying a folder onto another one with the same name replaces the
 - The first letter of the app's name now uses the colour of its logo everywhere it appears.
 - Version number aligned across the Skyrim Mac Toolkit.
 
-### Updates
-
-The app checks once a day whether a newer release exists on GitHub and offers to open the Nexus page, remind you later or skip that version. Nothing is downloaded or installed automatically. The full history is in [CHANGELOG.md](CHANGELOG.md).
-
 ### Screenshots
 
 ![Source, destination, merge](docs/screenshots/01_home.png)
 *Source, destination, merge*
+
+## Install
+
+**[Download the latest notarized release](https://github.com/starbudweiser/fOLDERFUSE/releases/latest)** · requires **macOS 15 Sequoia** or later on Apple Silicon.
 
 ### Requirements
 
@@ -58,7 +54,11 @@ A Mac with **Apple Silicon** (M1 or later), **macOS 15 Sequoia** or later. Nativ
 1. Choose the **SOURCE** folder, then the **DESTINATION** folder.
 2. Click **MERGE**, read the summary and confirm.
 
-### Building from source
+### Updates
+
+The app checks once a day whether a newer release exists on GitHub and offers to open the Nexus page, remind you later or skip that version. Nothing is downloaded or installed automatically. The full history is in [CHANGELOG.md](CHANGELOG.md).
+
+## Build
 
 Requires the Xcode command line tools (Swift). From the repository folder:
 
@@ -66,13 +66,27 @@ Requires the Xcode command line tools (Swift). From the repository folder:
 ./build_app.sh
 ```
 
-### License
+## Languages
 
-Released under the **MIT License**: free to use, modify and share. Part of the **Skyrim Mac Toolkit**, a set of modding tools built for Skyrim players on Mac.
+English, French, Spanish and Italian. The app follows your Mac's preferred language automatically (English if it is none of these four).
+
+## Support
+
+💬 Help and community: [Skyrim Mac Toolkit Discord](https://discord.gg/jRS4rvynx6) · bug reports: [GitHub Issues](https://github.com/starbudweiser/fOLDERFUSE/issues).
+
+## License
+
+Released under the **MIT License**: free to use, modify and share. Part of the **Skyrim Mac Toolkit**, a set of modding tools built for Skyrim players on Mac. See [LICENSE](LICENSE).
 
 ---
 
-## 🇫🇷 Français
+## Français
+
+**Fusionne un dossier dans un autre comme sous Windows — les fichiers de même nom sont remplacés.**
+
+🍏 *Appli Mac native écrite en Swift, signée et notarisée par Apple.*
+
+💬 Aide et communauté : [Discord du Skyrim Mac Toolkit](https://discord.gg/jRS4rvynx6)
 
 ### À quoi ça sert
 
