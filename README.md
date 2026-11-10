@@ -2,6 +2,8 @@
 
 # fOLDERFUSE
 
+[![Listed on OpenMacApps](https://openmacapps.com/badge.svg)](https://openmacapps.com/apps/folderfuse/)
+
 **Merges one folder into another the way Windows does it — files with the same name are replaced.**  
 *Fusionne un dossier dans un autre comme sous Windows — les fichiers de même nom sont remplacés.*
 
